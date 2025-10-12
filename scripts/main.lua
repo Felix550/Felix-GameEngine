@@ -1,7 +1,7 @@
 function On_Start()
     --Window.hide_console()
     Window.set_title("Running...")
-    Window.set_size(Vector2D(800,600))
+    Window.set_size(Vector2D(800, 600))
     Window.set_target_fps(60)
 end
 
@@ -17,8 +17,11 @@ local cube = Actor(
 
 local sprite = Actor(
     Vector2D(25, 25),
-    ShapeType.SPRITE,
-    {size = Vector2D(50, 50)}
+    ShapeType.CIRCLE,
+    {
+        color = Color(0, 0,255),
+        size = Vector2D(50,50),
+    }
 )
 
 -- Velocità movimento
@@ -65,15 +68,11 @@ function On_Runtime(dt, fps, frame)
 
     player.set_pos(pos)
 
+    if cube.colliding(sprite) then
+        Debug.log("UIUUAUAUA")
+    end
+
     -- Disegna gli attori
     Canvas.draw(cube)
     Canvas.draw(sprite)
-
-    -- Bordo nero per evidenziare il player attivo
-    local borderPos = player.get_pos()
-    local borderSize = player.get_data("size")
-    local topLeft = Vector2D(borderPos.x - borderSize.x / 2, borderPos.y - borderSize.y / 2)
-
-    -- Disegna un rettangolo nero come contorno
-    Canvas.draw_rect_outline(topLeft, borderSize, Color(0, 0, 0), 3)
 end

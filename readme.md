@@ -48,17 +48,17 @@ Crea un oggetto disegnabile.
 - **position**: `Vector2D` posizione dell’attore
 - **shape_type**: tipo della forma (`ShapeType`)
 - **data**: dizionario delle proprietà
-  - `size`: `Vector2D` dimensione (solo per `RECTANGLE`)
-  - `radius`: raggio (solo per `CIRCLE`)
+  - `size`: `Vector2D` dimensione (solo per `RECTANGLE`, per `CIRCLE` l'asse `X` indica il diametro)
   - `color`: `Color` colore della forma
   - `align`: `Align` allineamento del disegno (solo per `RECTANGLE`)
 
-#### Funzioni:
+#### Funzioni:s
 - `Actor.move(deltaPosition)` → sposta l’attore
 - `Actor.set_pos(newPosition)` → imposta la posizione assoluta
 - `Actor.get_pos()` → ottiene la posizione assoluta
 - `Actor.change_data(key, value)` → modifica una proprietà nel dizionario `data`
 - `Actor.get_data(key)` → ottiene una proprietà nel dizionario `data`
+- `Actor.colliding(Actor)` → restituisce Vero se 2 `Actor` collidono
 
 ---
 
