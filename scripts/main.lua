@@ -16,11 +16,12 @@ local cube = Actor(
 )
 
 local sprite = Actor(
-    Vector2D(25, 25),
-    ShapeType.CIRCLE,
+    Vector2D(50, 50),
+    ShapeType.ELLIPSE,
     {
         color = Color(0, 0,255),
         size = Vector2D(50,50),
+        align = Align.CENTER
     }
 )
 

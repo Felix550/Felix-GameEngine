@@ -4,7 +4,7 @@ import pygame
 
 class ShapeType(Enum):
     RECTANGLE = 1
-    CIRCLE = 2
+    ELLIPSE = 2
     SPRITE = 3
     
 class Align(Enum):

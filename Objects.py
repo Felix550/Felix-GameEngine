@@ -25,6 +25,7 @@ class Actor:
     def get_data(self, key):
         return self.data[key]
 
+    """
     def colliding(self, other: 'Actor'):
         # --- Rettangolo vs Rettangolo ---
         if self.shape_type == Types.ShapeType.RECTANGLE and other.shape_type == Types.ShapeType.RECTANGLE:
@@ -34,19 +35,23 @@ class Actor:
             align2 = other.data["align"] or Types.Align.CORNER
 
             rect1 = pygame.Rect(
-                self.position.x - (0 if align1 == Types.Align.CORNER else size1.x / 2),
-                self.position.y - (0 if align1 == Types.Align.CORNER else size1.y / 2),
+                self.position.x -
+                (0 if align1 == Types.Align.CORNER else size1.x / 2),
+                self.position.y -
+                (0 if align1 == Types.Align.CORNER else size1.y / 2),
                 size1.x, size1.y
             )
             rect2 = pygame.Rect(
-                other.position.x - (0 if align2 == Types.Align.CORNER else size2.x / 2),
-                other.position.y - (0 if align2 == Types.Align.CORNER else size2.y / 2),
+                other.position.x -
+                (0 if align2 == Types.Align.CORNER else size2.x / 2),
+                other.position.y -
+                (0 if align2 == Types.Align.CORNER else size2.y / 2),
                 size2.x, size2.y
             )
             return rect1.colliderect(rect2)
 
         # --- Cerchio vs Cerchio ---
-        elif self.shape_type == Types.ShapeType.CIRCLE and other.shape_type == Types.ShapeType.CIRCLE:
+        elif self.shape_type == Types.ShapeType.ELLIPSE and other.shape_type == Types.ShapeType.ELLIPSE:
             r1 = (self.data["size"] or Types.Vector2D(20, 20)).x / 2
             r2 = (other.data["size"] or Types.Vector2D(20, 20)).x / 2
             dx = self.position.x - other.position.x
@@ -54,21 +59,44 @@ class Actor:
             return dx * dx + dy * dy <= (r1 + r2) ** 2
 
         # --- Rettangolo vs Cerchio ---
-        elif self.shape_type == Types.ShapeType.RECTANGLE and other.shape_type == Types.ShapeType.CIRCLE:
+        elif self.shape_type == Types.ShapeType.RECTANGLE and other.shape_type == Types.ShapeType.ELLIPSE:
             return self._rect_circle_collision(self, other)
 
-        elif self.shape_type == Types.ShapeType.CIRCLE and other.shape_type == Types.ShapeType.RECTANGLE:
+        elif self.shape_type == Types.ShapeType.ELLIPSE and other.shape_type == Types.ShapeType.RECTANGLE:
             return self._rect_circle_collision(other, self)
 
         return False
+    """
+    
+    def colliding(self, other: 'Actor'):
+        size1 = self.data["size"] or Types.Vector2D(1, 1)
+        size2 = other.data["size"] or Types.Vector2D(1, 1)
+        align1 = self.data["align"] or Types.Align.CORNER
+        align2 = other.data["align"] or Types.Align.CORNER
+
+        rect1 = pygame.Rect(
+            self.position.x - (0 if align1 == Types.Align.CORNER else size1.x / 2),
+            self.position.y - (0 if align1 == Types.Align.CORNER else size1.y / 2),
+            size1.x, size1.y
+        )
+        rect2 = pygame.Rect(
+            other.position.x - (0 if align2 == Types.Align.CORNER else size2.x / 2),
+            other.position.y - (0 if align2 == Types.Align.CORNER else size2.y / 2),
+            size2.x, size2.y
+        )
+
+        return rect1.colliderect(rect2)
+
 
     def _rect_circle_collision(self, rect_actor, circle_actor):
         size = rect_actor.data["size"] or Types.Vector2D(1, 1)
         align = rect_actor.data["align"] or Types.Align.CORNER
         radius = (circle_actor.data["size"] or Types.Vector2D(20, 20)).x / 2
 
-        rect_x = rect_actor.position.x - (0 if align == Types.Align.CORNER else size.x / 2)
-        rect_y = rect_actor.position.y - (0 if align == Types.Align.CORNER else size.y / 2)
+        rect_x = rect_actor.position.x - \
+            (0 if align == Types.Align.CORNER else size.x / 2)
+        rect_y = rect_actor.position.y - \
+            (0 if align == Types.Align.CORNER else size.y / 2)
         rect = pygame.Rect(rect_x, rect_y, size.x, size.y)
 
         cx, cy = circle_actor.position.x, circle_actor.position.y
@@ -91,15 +119,22 @@ class Canvas:
         if actor.shape_type == Types.ShapeType.RECTANGLE:
             size = actor.data["size"] or Types.Vector2D(1, 1)
             align = actor.data["align"] or Types.Align.CORNER
-            X = actor.position.x - (0 if align == Types.Align.CORNER else size.x / 2)
-            Y = actor.position.y - (0 if align == Types.Align.CORNER else size.y / 2)
+            X = actor.position.x - \
+                (0 if align == Types.Align.CORNER else size.x / 2)
+            Y = actor.position.y - \
+                (0 if align == Types.Align.CORNER else size.y / 2)
             pygame.draw.rect(self.screen, actor.data["color"] or Types.Color(0, 0, 0),
                              pygame.Rect(X, Y, size.x, size.y))
 
-        elif actor.shape_type == Types.ShapeType.CIRCLE:
+        elif actor.shape_type == Types.ShapeType.ELLIPSE:
             size = actor.data["size"] or Types.Vector2D(50, 50)
-            pygame.draw.circle(self.screen, actor.data["color"] or Types.Color(0, 0, 0),
-                               actor.position, size.x / 2)
+            align = actor.data["align"] or Types.Align.CORNER
+            X = actor.position.x - \
+                (0 if align == Types.Align.CORNER else size.x / 2)
+            Y = actor.position.y - \
+                (0 if align == Types.Align.CORNER else size.y / 2)
+            pygame.draw.ellipse(self.screen, actor.data["color"] or Types.Color(
+                0, 0, 0), pygame.Rect(X, Y, size.x, size.y))
 
         elif actor.shape_type == Types.ShapeType.SPRITE:
             size = actor.data["size"] or Types.Vector2D(1, 1)

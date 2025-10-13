@@ -21,7 +21,7 @@ Rappresenta un vettore bidimensionale.
 ### `ShapeType`
 Definisce la forma di un attore.
 - `RECTANGLE`: rettangolo
-- `CIRCLE`: cerchio
+- `ELLIPSE`: cerchio / ellisse
 - `SPRITE`: sprite (non ancora implementato)
 
 ### `Align`
@@ -43,7 +43,7 @@ Definisce i Bottoni per il Mouse.
 
 ## Objects
 
-### `Actor(position, shape_type, data)`
+### `Actor(position, shape_type, data)
 Crea un oggetto disegnabile.
 - **position**: `Vector2D` posizione dell’attore
 - **shape_type**: tipo della forma (`ShapeType`)
