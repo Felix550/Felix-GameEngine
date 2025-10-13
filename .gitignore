@@ -402,4 +402,5 @@ FodyWeavers.xsd
 
 #output 
 output/*
+build/*
 **/*.exe

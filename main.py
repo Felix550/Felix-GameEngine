@@ -1,114 +1,60 @@
-import argparse
 import os
+import sys
+import subprocess
+import argparse
+import nuitka
 
-def lua_file(value):
-    if not value.endswith(".lua"):
-        raise argparse.ArgumentTypeError(f"{value} non è un file Lua")
-    if not os.path.isfile(value):
-        raise argparse.ArgumentTypeError(f"{value} non esiste")
-    return value
+def get_base_path():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    else:
+        return os.path.dirname(os.path.abspath(__file__))
 
-parser = argparse.ArgumentParser(description="Run the runtime compiler.")
-parser.add_argument("script", help="Lua script to run", nargs="?", default="scripts/main.lua", type=lua_file)
+BASE_PATH = get_base_path()
 
+SCRIPTS_PATH = os.path.join(BASE_PATH, "scripts")
+ENTRY_SCRIPT = os.path.join(SCRIPTS_PATH, "main.lua")
+
+parser = argparse.ArgumentParser(description="Felix Engine")
+parser.add_argument("--compile", action="store_true", help="Compila")
+parser.add_argument("-o", "--output", default="output", help="Cartella di destinazione della compilazione")
 args = parser.parse_args()
 
-import pygame
-from lupa import LuaRuntime
-import time
-import Types
-import Objects
+def compile_with_nuitka(output_dir):
+    print("[INFO] Compilazione con Nuitka in corso...")
 
-lua = LuaRuntime(unpack_returned_tuples=True)
+    os.makedirs(output_dir, exist_ok=True)
 
-pygame.init()
-pygame.font.init()
+    nuitka_cmd = [
+        sys.executable, "-m", "nuitka",
+        "--standalone",
+        "--onefile",
+        "--lto=yes",
+        "--include-package=lupa",
+        "--include-data-dir=scripts=scripts",
+        f"--output-dir={output_dir}",
+        os.path.basename(__file__)
+    ]
 
-Screen = Objects.Screen()
-lua.globals().Screen = Screen
+    try:
+        subprocess.check_call(nuitka_cmd)
+        print(f"[OK] Compilato! In: {os.path.abspath(output_dir)}")
+    except subprocess.CalledProcessError as e:
+        print(f"[ERRORE] OPPSIE!: {e}")
+        sys.exit(1)
 
-screen = pygame.display.set_mode((800,600))
-clock = pygame.time.Clock()
-my_font = pygame.font.SysFont('Comic Sans MS', 30)
+if args.compile:
+    compile_with_nuitka(args.output)
+    sys.exit(0)
 
-#Typess
-lua.globals().Color = Types.Color
-lua.globals().Vector2D = Types.Vector2D
-lua.globals().ShapeType = Types.ShapeType
-lua.globals().Align = Types.Align
+import Excec
 
-#KeyCode
-lua.globals().KeyCode = Types.KeyCode
-lua.globals().MouseButton = Types.MouseButton
+if not os.path.exists(ENTRY_SCRIPT):
+    print(f"[ERRORE] Script main mancante: {ENTRY_SCRIPT}")
+    sys.exit(1)
 
-#Objects
-Canvas = Objects.Canvas(screen)
-lua.globals().Canvas = Canvas
-Debug = Objects.Debug()
-lua.globals().Debug = Debug
-Window = Objects.Window(60)
-lua.globals().Window = Window
-# -- Screen --
-Mouse = Objects.Mouse()
-lua.globals().Mouse = Mouse
-Input = Objects.Input()
-lua.globals().Input = Input
+with open(ENTRY_SCRIPT, "r", encoding="utf-8") as f:
+    code = f.read()
 
-#Unizilized Objects
-lua.globals().Actor = Objects.Actor
-
-#Functions
-lua.globals().wait = time.sleep
-
-with open(args.script,"r") as f:
-    lua.execute(f.read())
-    
-On_Runtime = lua.globals().On_Runtime if "On_Runtime" in lua.globals() else None
-On_Start = lua.globals().On_Start if "On_Start" in lua.globals() else None
-On_KeyDown = lua.globals().On_KeyDown if "On_KeyDown" in lua.globals() else None
-On_KeyUp = lua.globals().On_KeyUp if "On_KeyUp" in lua.globals() else None
-
-startTime = time.perf_counter()
-currentFrame = 0
-
-if On_Start is not None:
-    On_Start()
-
-running = True
-while running:
-    for e in pygame.event.get():
-        if e.type == pygame.QUIT:
-            running = False
-        elif e.type == pygame.KEYDOWN:
-            if On_KeyDown is not None:
-                On_KeyDown(e.key)
-        elif e.type == pygame.KEYUP:
-            if On_KeyUp is not None:
-                On_KeyUp(e.key)         
-    
-    if currentFrame <= Window.get_target_fps():
-        screen.fill((0,0,0))
-        text_surface = my_font.render('Made With Felix Engine', True, (255, 255, 255))
-        w,h = screen.get_size()
-        screen.blit(text_surface, ((w - text_surface.get_width()) / 2,(h - text_surface.get_height()) / 2))
-        pygame.display.flip()
-        clock.tick(Window.get_target_fps())
-        currentFrame += 1
-        continue
-    
-    Input._update()
-    Mouse._update()
-    
-    deltaTime = time.perf_counter()      
-    if On_Runtime is not None:
-        On_Runtime(deltaTime - startTime,clock.get_fps(),currentFrame)
-    
-    startTime = deltaTime
-    
-    Input._end_frame()
-    Mouse._end_frame()
-    
-    currentFrame += 1
-        
-    pygame.display.flip()
-    clock.tick(Window.get_target_fps())
+excecuter = Excec.excecuter()
+excecuter.run(code)
