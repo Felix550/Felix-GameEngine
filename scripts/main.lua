@@ -15,13 +15,49 @@ local cube = Actor(
     }
 )
 
-local sprite = Actor(
+local ellipse = Actor(
     Vector2D(50, 50),
     ShapeType.ELLIPSE,
     {
-        color = Color(0, 0,255),
-        size = Vector2D(50,50),
+        color = Color(0, 0, 255),
+        size = Vector2D(50, 50),
         align = Align.CENTER
+    }
+)
+
+local line = Actor(
+    Vector2D(
+        Vector2D(0, 0),
+        Vector2D(100, 100)),
+    ShapeType.LINE,
+    {
+        color = Color(0, 0, 0),
+        width = 5
+    }
+)
+
+local arc = Actor(
+    Vector2D(150, 150),
+    ShapeType.ARC,
+    {
+        size = Vector2D(50, 50),
+        color = Color(0, 0, 0),
+        start_angle = 0,
+        stop_angle = 0,
+        width = 1
+    }
+)
+
+local font = Font("Arial",30,true,true)
+
+local text = Actor(
+    Vector2D(800, 0),
+    ShapeType.TEXT,
+    {
+        font = font,
+        color = Color(0, 0, 0),
+        antialias = true,
+        text_align = TextAlign.RIGHT
     }
 )
 
@@ -31,16 +67,12 @@ local speed = 300
 -- Player attivo
 local player = cube
 
-function On_Runtime(dt, fps, frame)
-    Canvas.fill(Color(255, 255, 255))
-
-    Window.set_title("FPS: " .. tostring(fps))
-
+local function moveControl(dt)
     -- Cambia il player attivo
     if Input.GetKeyUp(KeyCode.K_1) then
         player = cube
     elseif Input.GetKeyUp(KeyCode.K_2) then
-        player = sprite
+        player = ellipse
     end
 
     -- Movimento del player attivo
@@ -68,12 +100,25 @@ function On_Runtime(dt, fps, frame)
     )
 
     player.set_pos(pos)
+end
 
-    if cube.colliding(sprite) then
-        Debug.log("UIUUAUAUA")
+function On_Runtime(dt, fps, frame)
+    Canvas.fill(Color(255, 255, 255))
+
+    Window.set_title("FPS: " .. tostring(fps))
+
+    moveControl(dt)
+
+    if cube.colliding(ellipse) then
+        -- Debug.log("UIUUAUAUA")
     end
+
+    text.change_data("text",string.format("%.0f", fps))
 
     -- Disegna gli attori
     Canvas.draw(cube)
-    Canvas.draw(sprite)
+    Canvas.draw(ellipse)
+    Canvas.draw(line)
+    Canvas.draw(arc)
+    Canvas.draw(text)
 end

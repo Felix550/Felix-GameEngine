@@ -8,7 +8,15 @@ class Actor:
     def __init__(self, position: Types.Vector2D, shape_type: Types.ShapeType, data: dict):
         self.position = position
         self.shape_type = shape_type
-        self.data = data
+        if data is None:
+            self.data = {}
+        elif isinstance(data, dict):
+            self.data = data
+        else:
+            try:
+                self.data = dict(data)
+            except Exception:
+                self.data = {}
 
     def move(self, deltaPosition: Types.Vector2D):
         self.position += deltaPosition
@@ -22,17 +30,17 @@ class Actor:
     def change_data(self, key, value):
         self.data[key] = value
 
-    def get_data(self, key):
-        return self.data[key]
+    def get_data(self, key, default=None):
+        return self.data.get(key, default)
 
     """
     def colliding(self, other: 'Actor'):
         # --- Rettangolo vs Rettangolo ---
         if self.shape_type == Types.ShapeType.RECTANGLE and other.shape_type == Types.ShapeType.RECTANGLE:
-            size1 = self.data["size"] or Types.Vector2D(1, 1)
-            size2 = other.data["size"] or Types.Vector2D(1, 1)
-            align1 = self.data["align"] or Types.Align.CORNER
-            align2 = other.data["align"] or Types.Align.CORNER
+            size1 = self.data.get("size", Types.Vector2D(1, 1))
+            size2 = other.data.get("size", Types.Vector2D(1, 1))
+            align1 = self.data.get("align", Types.Align.CORNER)
+            align2 = other.data.get("align", Types.Align.CORNER)
 
             rect1 = pygame.Rect(
                 self.position.x -
@@ -52,8 +60,8 @@ class Actor:
 
         # --- Cerchio vs Cerchio ---
         elif self.shape_type == Types.ShapeType.ELLIPSE and other.shape_type == Types.ShapeType.ELLIPSE:
-            r1 = (self.data["size"] or Types.Vector2D(20, 20)).x / 2
-            r2 = (other.data["size"] or Types.Vector2D(20, 20)).x / 2
+            r1 = self.data.get("size", Types.Vector2D(20, 20)).x / 2
+            r2 = other.data.get("size", Types.Vector2D(20, 20)).x / 2
             dx = self.position.x - other.position.x
             dy = self.position.y - other.position.y
             return dx * dx + dy * dy <= (r1 + r2) ** 2
@@ -67,31 +75,34 @@ class Actor:
 
         return False
     """
-    
+
     def colliding(self, other: 'Actor'):
-        size1 = self.data["size"] or Types.Vector2D(1, 1)
-        size2 = other.data["size"] or Types.Vector2D(1, 1)
-        align1 = self.data["align"] or Types.Align.CORNER
-        align2 = other.data["align"] or Types.Align.CORNER
+        size1 = self.data.get("size", Types.Vector2D(1, 1))
+        size2 = other.data.get("size", Types.Vector2D(1, 1))
+        align1 = self.data.get("align", Types.Align.CORNER)
+        align2 = other.data.get("align", Types.Align.CORNER)
 
         rect1 = pygame.Rect(
-            self.position.x - (0 if align1 == Types.Align.CORNER else size1.x / 2),
-            self.position.y - (0 if align1 == Types.Align.CORNER else size1.y / 2),
+            self.position.x -
+            (0 if align1 == Types.Align.CORNER else size1.x / 2),
+            self.position.y -
+            (0 if align1 == Types.Align.CORNER else size1.y / 2),
             size1.x, size1.y
         )
         rect2 = pygame.Rect(
-            other.position.x - (0 if align2 == Types.Align.CORNER else size2.x / 2),
-            other.position.y - (0 if align2 == Types.Align.CORNER else size2.y / 2),
+            other.position.x -
+            (0 if align2 == Types.Align.CORNER else size2.x / 2),
+            other.position.y -
+            (0 if align2 == Types.Align.CORNER else size2.y / 2),
             size2.x, size2.y
         )
 
         return rect1.colliderect(rect2)
 
-
     def _rect_circle_collision(self, rect_actor, circle_actor):
-        size = rect_actor.data["size"] or Types.Vector2D(1, 1)
-        align = rect_actor.data["align"] or Types.Align.CORNER
-        radius = (circle_actor.data["size"] or Types.Vector2D(20, 20)).x / 2
+        size = rect_actor.data.get("size", Types.Vector2D(1, 1))
+        align = rect_actor.data.get("align", Types.Align.CORNER)
+        radius = circle_actor.data.get("size", Types.Vector2D(20, 20)).x / 2
 
         rect_x = rect_actor.position.x - \
             (0 if align == Types.Align.CORNER else size.x / 2)
@@ -117,27 +128,27 @@ class Canvas:
 
     def draw(self, actor: Actor):
         if actor.shape_type == Types.ShapeType.RECTANGLE:
-            size = actor.data["size"] or Types.Vector2D(1, 1)
-            align = actor.data["align"] or Types.Align.CORNER
+            size = actor.data.get("size", Types.Vector2D(1, 1))
+            align = actor.data.get("align", Types.Align.CORNER)
             X = actor.position.x - \
                 (0 if align == Types.Align.CORNER else size.x / 2)
             Y = actor.position.y - \
                 (0 if align == Types.Align.CORNER else size.y / 2)
-            pygame.draw.rect(self.screen, actor.data["color"] or Types.Color(0, 0, 0),
+            pygame.draw.rect(self.screen, actor.data.get("color", Types.Color(0, 0, 0)),
                              pygame.Rect(X, Y, size.x, size.y))
 
         elif actor.shape_type == Types.ShapeType.ELLIPSE:
-            size = actor.data["size"] or Types.Vector2D(50, 50)
-            align = actor.data["align"] or Types.Align.CORNER
+            size = actor.data.get("size", Types.Vector2D(50, 50))
+            align = actor.data.get("align", Types.Align.CORNER)
             X = actor.position.x - \
                 (0 if align == Types.Align.CORNER else size.x / 2)
             Y = actor.position.y - \
                 (0 if align == Types.Align.CORNER else size.y / 2)
-            pygame.draw.ellipse(self.screen, actor.data["color"] or Types.Color(
-                0, 0, 0), pygame.Rect(X, Y, size.x, size.y))
+            pygame.draw.ellipse(self.screen, actor.data.get("color", Types.Color(0, 0, 0)),
+                                pygame.Rect(X, Y, size.x, size.y))
 
         elif actor.shape_type == Types.ShapeType.SPRITE:
-            size = actor.data["size"] or Types.Vector2D(1, 1)
+            size = actor.data.get("size", Types.Vector2D(1, 1))
             px = actor.position.x - size.x / 2
             py = actor.position.y - size.y / 2
             sx, sy = size.x, size.y
@@ -149,6 +160,42 @@ class Canvas:
                                 (px + sx * 0.75 - sx * 0.1, py + sy * 0.25 - sy * 0.1, sx * 0.2, sy * 0.2))
             pygame.draw.arc(self.screen, (0, 0, 0),
                             (px + sx * 0.25, py + sy * 0.5, sx * 0.5, sy * 0.3), 3.14, 0, 3)
+
+        elif actor.shape_type == Types.ShapeType.LINE:
+            point1 = actor.position.x
+            point2 = actor.position.y
+            width = actor.data.get("width", 1)
+            color = actor.data.get("color", Types.Color(0, 0, 0))
+            pygame.draw.line(self.screen, color, point1, point2, width)
+
+        elif actor.shape_type == Types.ShapeType.ARC:
+            X = actor.position.x
+            Y = actor.position.y
+            size = actor.data.get("size", Types.Vector2D(1, 1))
+            width = actor.data.get("width", 1)
+            color = actor.data.get("color", Types.Color(0, 0, 0))
+            start_angle = actor.data.get("start_angle", 3)
+            stop_angle = actor.data.get("stop_angle", 0)
+            pygame.draw.arc(self.screen, color, (X, Y, size.x,
+                            size.y), start_angle, stop_angle, width)
+
+        elif actor.shape_type == Types.ShapeType.TEXT:
+            X = actor.position.x
+            Y = actor.position.y
+            text = actor.data.get("text", "")
+            font = actor.data.get("font", Types.Font("Comic Sans MS", 20))
+            color = actor.data.get("color", Types.Color(0, 0, 0))
+            text_align = actor.data.get("text_align", Types.TextAlign.LEFT)
+            antialias = actor.data.get("antialias", True)
+            text_surface = font._construct().render(text, antialias, color)
+            width, height = text_surface.get_width(), text_surface.get_height()
+            
+            if text_align == Types.TextAlign.CENTER:
+                X -= width / 2
+            elif text_align == Types.TextAlign.RIGHT:
+                X -= width
+                
+            self.screen.blit(text_surface, (X, Y, width, height))
 
 
 class Window:

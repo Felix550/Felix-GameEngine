@@ -6,11 +6,30 @@ class ShapeType(Enum):
     RECTANGLE = 1
     ELLIPSE = 2
     SPRITE = 3
+    LINE = 4
+    ARC = 5
+    TEXT = 6
     
 class Align(Enum):
     CENTER = 1
     CORNER = 2
-
+    
+class TextAlign(Enum):
+    LEFT = 1
+    CENTER = 2
+    RIGHT = 3
+    
+class Font():
+    def __init__(self,fontName,fontSize, bold: bool = False, italic: bool = False):
+        self.fontName = fontName
+        self.fontSize = fontSize
+        self.bold = bold
+        self.italic = italic
+    
+    def _construct(self):
+        return pygame.font.SysFont(self.fontName,self.fontSize,self.bold, self.italic)
+    
+        
 #Inputs
 KeyCode = SimpleNamespace(**{name: value for name, value in pygame.__dict__.items() if name.startswith("K_")})
 

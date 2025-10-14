@@ -26,7 +26,9 @@ class excecuter:
         lua.globals().Vector2D = Types.Vector2D
         lua.globals().ShapeType = Types.ShapeType
         lua.globals().Align = Types.Align
-
+        lua.globals().TextAlign = Types.TextAlign
+        lua.globals().Font = Types.Font
+        
         #KeyCode
         lua.globals().KeyCode = Types.KeyCode
         lua.globals().MouseButton = Types.MouseButton

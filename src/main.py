@@ -12,13 +12,14 @@ def get_base_path():
 
 BASE_PATH = get_base_path()
 
-SCRIPTS_PATH = os.path.join(BASE_PATH, "scripts")
-ENTRY_SCRIPT = os.path.join(SCRIPTS_PATH, "main.lua")
-
 parser = argparse.ArgumentParser(description="Felix Engine")
 parser.add_argument("--compile", action="store_true", help="Compila")
 parser.add_argument("-o", "--output", default="output", help="Cartella di destinazione della compilazione")
+parser.add_argument("-s", "--source", default="scripts", help="Cartella di avvio entry point principale")
 args = parser.parse_args()
+
+SCRIPTS_PATH = args.source
+ENTRY_SCRIPT = os.path.join(SCRIPTS_PATH, "main.lua")
 
 def compile_with_nuitka(output_dir):
     print("[INFO] Compilazione con Nuitka in corso...")
