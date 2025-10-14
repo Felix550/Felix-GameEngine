@@ -34,9 +34,9 @@ Definisce l'allineamento del disegno.
 
 ### `TextAlign`
 Definisce l'allineamento del disegno.
-- `LEFT`: allinea il testo a sinistra
-- `CENTER`: allinea il testo al centro
-- `RIGHT`: allinea il testo a destra
+- `LEFT`: allinea il testo a sinistra in alto
+- `CENTER`: allinea il testo al centro in mezzo
+- `RIGHT`: allinea il testo a destra in alto
 
 ### `KeyCode`
 Definisce una lista di Tasti per tastiera.

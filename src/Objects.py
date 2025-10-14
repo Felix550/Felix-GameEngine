@@ -192,6 +192,7 @@ class Canvas:
             
             if text_align == Types.TextAlign.CENTER:
                 X -= width / 2
+                Y -= height / 2
             elif text_align == Types.TextAlign.RIGHT:
                 X -= width
                 
