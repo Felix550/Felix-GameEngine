@@ -1,6 +1,7 @@
 class excecuter:
-    def __init__(self):
-        pass
+    def __init__(self, assetFolder, entryFile):
+        self.assetFolder = assetFolder
+        self.entryFile = entryFile
     
     def run(self,luaCode):
         import pygame
@@ -34,11 +35,11 @@ class excecuter:
         lua.globals().MouseButton = Types.MouseButton
 
         #Objects
-        Canvas = Objects.Canvas(screen)
+        Canvas = Objects.Canvas(screen,self.assetFolder)
         lua.globals().Canvas = Canvas
-        Debug = Objects.Debug()
+        Debug = Objects.Debug(self.entryFile, self.assetFolder)
         lua.globals().Debug = Debug
-        Window = Objects.Window(60)
+        Window = Objects.Window(60, self.assetFolder)
         lua.globals().Window = Window
         # -- Screen --
         Mouse = Objects.Mouse()

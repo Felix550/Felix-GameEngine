@@ -64,6 +64,7 @@ Crea un oggetto disegnabile.
 - `Actor.get_pos()` → ottiene la posizione assoluta
 - `Actor.change_data(key, value)` → modifica una proprietà nel dizionario `data`
 - `Actor.get_data(key)` → ottiene una proprietà nel dizionario `data`
+- `Actor.get_size()` → ottiene la dimensione del testo renderizzato (Usato solo se ShapeType è TEXT)
 - `Actor.colliding(Actor)` → restituisce Vero se 2 `Actor` collidono
 
 ---
@@ -99,6 +100,7 @@ Gestisce le proprietà della finestra.
 - `Window.toggle_fullscreen()` → scorre tra Fullscreen e Windowed
 - `Window.show_console()` → mostra la console
 - `Window.hide_console()` → nasconde la console
+- `Window.set_icon(path)` → imposta l'icona della finestra con un percorso relativo alla cartella assets
   
 ### `Screen`
 Gestisce le proprietà dello schermo.
@@ -133,6 +135,8 @@ Sistema di logging basilare.
 
 #### Funzioni:
 - `Debug.log(text)` → stampa un messaggio con timestamp
+- `Debug.get_entry_file()` → ottiene il perscorso assoluto del file .lua principale
+- `Debug.get_assets_folder()` → ottiene il perscorso assoluto della cartella assets
 
 ---
 
@@ -160,6 +164,12 @@ Un'Ellisse (o Cerchio).
 
 ### `SPRITE`
 Un'Immagine.
+
+#### Propietà in Data:
+- **path**: percorso relativo alla asset folder
+- **size**: `Vector2D` dimensione Immagine
+- **align**: `Align` allineamento pivot Immagine
+- **alpha**: se vero renderizzerà l'immagine tagliando via il layer Alpha (trasparente)
 
 ---
 

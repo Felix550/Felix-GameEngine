@@ -16,10 +16,12 @@ parser = argparse.ArgumentParser(description="Felix Engine")
 parser.add_argument("--compile", action="store_true", help="Compila")
 parser.add_argument("-o", "--output", default="output", help="Cartella di destinazione della compilazione")
 parser.add_argument("-s", "--source", default="scripts", help="Cartella di avvio entry point principale")
+parser.add_argument("-a", "--assets", default="assets", help="Cartella di assets principale")
 args = parser.parse_args()
 
 SCRIPTS_PATH = args.source
 ENTRY_SCRIPT = os.path.join(SCRIPTS_PATH, "main.lua")
+ASSETSFOLDER = args.assets
 
 def compile_with_nuitka(output_dir):
     print("[INFO] Compilazione con Nuitka in corso...")
@@ -51,11 +53,15 @@ if args.compile:
 import Excec
 
 if not os.path.exists(ENTRY_SCRIPT):
-    print(f"[ERRORE] Script main mancante: {ENTRY_SCRIPT}")
+    print(f"Script main mancante: {ENTRY_SCRIPT}")
+    sys.exit(1)
+    
+if not os.path.exists(ASSETSFOLDER):
+    print(f"Cartella assets mancante: {ASSETSFOLDER}")
     sys.exit(1)
 
 with open(ENTRY_SCRIPT, "r", encoding="utf-8") as f:
     code = f.read()
 
-excecuter = Excec.excecuter()
+excecuter = Excec.excecuter(os.path.abspath(ASSETSFOLDER), os.path.abspath(ENTRY_SCRIPT))
 excecuter.run(code)

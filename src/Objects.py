@@ -2,7 +2,7 @@ import pygame
 import Types
 import time
 import ctypes
-
+import os
 
 class Actor:
     def __init__(self, position: Types.Vector2D, shape_type: Types.ShapeType, data: dict):
@@ -32,6 +32,22 @@ class Actor:
 
     def get_data(self, key, default=None):
         return self.data.get(key, default)
+    
+    def get_size(self):
+        if self.shape_type != Types.ShapeType.TEXT:
+            raise DeprecationWarning("This function is only for Text. Use get_data('size') for other shapes.")
+
+        text = self.data.get("text", "")
+        font = self.data.get("font", Types.Font("Comic Sans MS", 20))
+
+        # cache del font pygame per evitare di ricrearlo ogni volta
+        if not hasattr(font, "_pg_font"):
+            font._pg_font = font._construct()
+
+        width, height = font._pg_font.size(text)
+        return Types.Vector2D(width, height)
+
+        
 
     """
     def colliding(self, other: 'Actor'):
@@ -120,8 +136,9 @@ class Actor:
 
 
 class Canvas:
-    def __init__(self, screen: pygame.Surface):
+    def __init__(self, screen: pygame.Surface, assetFolder):
         self.screen = screen
+        self.assetFolder = assetFolder
 
     def fill(self, color: Types.Color):
         self.screen.fill(color)
@@ -149,18 +166,29 @@ class Canvas:
 
         elif actor.shape_type == Types.ShapeType.SPRITE:
             size = actor.data.get("size", Types.Vector2D(1, 1))
-            px = actor.position.x - size.x / 2
-            py = actor.position.y - size.y / 2
-            sx, sy = size.x, size.y
+            align = actor.data.get("align", Types.Align.CORNER)
+            path = actor.data.get("path")
+            alpha = actor.data.get("alpha", True)
+            
+            X = actor.position.x - \
+                (0 if align == Types.Align.CORNER else size.x / 2)
+            Y = actor.position.y - \
+                (0 if align == Types.Align.CORNER else size.y / 2)
+            
+            if not path:
+                raise KeyError("[ERROR] 'path' is required.")
+            
+            full_path = os.path.abspath(os.path.join(self.assetFolder, path))
+            if not os.path.isfile(full_path):
+                raise FileNotFoundError(f"[ERROR] File not found: {full_path}")
 
-            pygame.draw.ellipse(self.screen, (255, 255, 0), (px, py, sx, sy))
-            pygame.draw.ellipse(self.screen, (0, 0, 0),
-                                (px + sx * 0.25 - sx * 0.1, py + sy * 0.25 - sy * 0.1, sx * 0.2, sy * 0.2))
-            pygame.draw.ellipse(self.screen, (0, 0, 0),
-                                (px + sx * 0.75 - sx * 0.1, py + sy * 0.25 - sy * 0.1, sx * 0.2, sy * 0.2))
-            pygame.draw.arc(self.screen, (0, 0, 0),
-                            (px + sx * 0.25, py + sy * 0.5, sx * 0.5, sy * 0.3), 3.14, 0, 3)
-
+            image = pygame.image.load(full_path)
+            image = image.convert_alpha() if alpha else image.convert()
+            
+            image = pygame.transform.smoothscale(image, size)
+            
+            self.screen.blit(image, (X,Y))
+            
         elif actor.shape_type == Types.ShapeType.LINE:
             point1 = actor.position.x
             point2 = actor.position.y
@@ -195,14 +223,15 @@ class Canvas:
                 Y -= height / 2
             elif text_align == Types.TextAlign.RIGHT:
                 X -= width
-                
+
             self.screen.blit(text_surface, (X, Y, width, height))
 
 
 class Window:
-    def __init__(self, FPS):
+    def __init__(self, FPS, assetFolder):
         self.display = pygame.display
         self._console_handle = ctypes.windll.kernel32.GetConsoleWindow()
+        self.assetFolder = assetFolder
         self.FPS = FPS
 
     def set_title(self, title: str):
@@ -232,7 +261,14 @@ class Window:
 
     def hide_console(self):
         ctypes.windll.user32.ShowWindow(self._console_handle, 0)
-
+        
+    def set_icon(self, iconAsset):          
+        full_path = os.path.abspath(os.path.join(self.assetFolder, iconAsset))
+        if not os.path.isfile(full_path):
+            raise FileNotFoundError(f"[ERROR] File not found: {full_path}")
+        
+        image = pygame.image.load(full_path).convert_alpha()
+        self.display.set_icon(image)
 
 class Screen:
     def __init__(self):
@@ -294,8 +330,16 @@ class Input:
 
 
 class Debug:
-    def __init__(self):
-        pass
+    def __init__(self, entry, assets):
+        self.entry = entry
+        self.assets = assets
 
     def log(self, text):
         print(f"[{time.strftime('%H:%M:%S')}] {text}")
+        
+    def get_entry_file(self):
+        return self.entry
+    
+    def get_assets_folder(self):
+        return self.assets
+    

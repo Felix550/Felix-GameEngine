@@ -1,12 +1,16 @@
 function On_Start()
     --Window.hide_console()
+    Window.set_icon("sprite1.png")
     Window.set_title("Running...")
     Window.set_size(Vector2D(800, 600))
     Window.set_target_fps(60)
+
+    Debug.log(Debug.get_entry_file())
+    Debug.log(Debug.get_assets_folder())
 end
 
 local cube = Actor(
-    Vector2D(25, 25),
+    Vector2D(35, 35),
     ShapeType.RECTANGLE,
     {
         color = Color(255, 0, 0),
@@ -16,7 +20,7 @@ local cube = Actor(
 )
 
 local ellipse = Actor(
-    Vector2D(50, 50),
+    Vector2D(110, 35),
     ShapeType.ELLIPSE,
     {
         color = Color(0, 0, 255),
@@ -27,8 +31,8 @@ local ellipse = Actor(
 
 local line = Actor(
     Vector2D(
-        Vector2D(0, 0),
-        Vector2D(100, 100)),
+        Vector2D(10, 75),
+        Vector2D(135, 75)),
     ShapeType.LINE,
     {
         color = Color(0, 0, 0),
@@ -37,12 +41,12 @@ local line = Actor(
 )
 
 local arc = Actor(
-    Vector2D(150, 150),
+    Vector2D(10, 35),
     ShapeType.ARC,
     {
-        size = Vector2D(50, 50),
+        size = Vector2D(125, 125),
         color = Color(0, 0, 0),
-        start_angle = 0,
+        start_angle = 3.14,
         stop_angle = 0,
         width = 1
     }
@@ -61,6 +65,39 @@ local text = Actor(
     }
 )
 
+local image = Actor(
+    Vector2D(400, 300),
+    ShapeType.SPRITE,
+    {
+        size = Vector2D(100,100),
+        path = "sprite1.png",
+        alpha = true,
+        align = Align.CENTER
+    }
+)
+
+local currentPlayerTEXT = Actor(
+    Vector2D(Window.get_size().x / 2, Window.get_size().y - 20),
+    ShapeType.TEXT,
+    {
+        text = "1  2  3",
+        font = font,
+        color = Color(0, 0, 0),
+        antialias = true,
+        text_align = TextAlign.CENTER
+    }
+)
+
+local currentPlayerSELECTOR = Actor(
+    Vector2D(Window.get_size().x / 2 - 32, Window.get_size().y - 20),
+    ShapeType.RECTANGLE,
+    {
+        size = Vector2D(18,32),
+        color = Color(255, 0, 0),
+        align = TextAlign.CENTER
+    }
+)
+
 -- Velocità movimento
 local speed = 300
 
@@ -73,6 +110,8 @@ local function moveControl(dt)
         player = cube
     elseif Input.GetKeyUp(KeyCode.K_2) then
         player = ellipse
+    elseif Input.GetKeyUp(KeyCode.K_3) then
+        player = image
     end
 
     -- Movimento del player attivo
@@ -106,14 +145,24 @@ function On_Runtime(dt, fps, frame)
     Canvas.fill(Color(255, 255, 255))
 
     Window.set_title("FPS: " .. tostring(fps))
+    text.change_data("text","FPS: " .. string.format("%.0f", fps))
 
     moveControl(dt)
 
     if cube.colliding(ellipse) then
-        -- Debug.log("UIUUAUAUA")
+        Debug.log("COLLIDE Ellipse & Cube")
     end
 
-    text.change_data("text",string.format("%.0f", fps))
+    if player == cube then
+        currentPlayerSELECTOR.set_pos(Vector2D(Window.get_size().x / 2 - 32,Window.get_size().y - 20))
+    elseif player == ellipse then
+        currentPlayerSELECTOR.set_pos(Vector2D(Window.get_size().x / 2,Window.get_size().y - 20))
+    elseif player == image then
+        currentPlayerSELECTOR.set_pos(Vector2D(Window.get_size().x / 2 + 32,Window.get_size().y - 20))
+    end
+
+    local tsize = text.get_size()
+    Debug.log(tsize.x .. " : " .. tsize.y)
 
     -- Disegna gli attori
     Canvas.draw(cube)
@@ -121,4 +170,8 @@ function On_Runtime(dt, fps, frame)
     Canvas.draw(line)
     Canvas.draw(arc)
     Canvas.draw(text)
+    Canvas.draw(image)
+    --Logic
+    Canvas.draw(currentPlayerSELECTOR)
+    Canvas.draw(currentPlayerTEXT)
 end
