@@ -55,9 +55,10 @@ Definisce i Bottoni per il Mouse.
 
 ## • Objects
 
-### `Actor(position, shape_type, data)`
+### `Actor(position, rotation, shape_type, data)`
 Crea un oggetto disegnabile.
 - **position**: `Vector2D` posizione dell’attore
+- **rotation**: `Vector2D` rotazione dell’attore
 - **shape_type**: tipo della forma (`ShapeType`)
 - **data**: dizionario delle proprietà (Vedi `Shape Data`)
 
@@ -65,6 +66,9 @@ Crea un oggetto disegnabile.
 - `Actor.move(deltaPosition)` → sposta l’attore
 - `Actor.set_pos(newPosition)` → imposta la posizione assoluta
 - `Actor.get_pos()` → ottiene la posizione assoluta
+- `Actor.rotate()` → ruota l'attore
+- `Actor.set_rotation()` → imposta la rotazione assoluta
+- `Actor.get_rotation()` → ottiene la rotazione assoluta
 - `Actor.change_data(key, value)` → modifica una proprietà nel dizionario `data`
 - `Actor.get_data(key)` → ottiene una proprietà nel dizionario `data`
 - `Actor.get_size()` → ottiene la dimensione del testo renderizzato (Usato solo se ShapeType è TEXT)

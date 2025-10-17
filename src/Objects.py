@@ -3,10 +3,12 @@ import Types
 import time
 import ctypes
 import os
+import math
 
 class Actor:
-    def __init__(self, position: Types.Vector2D, shape_type: Types.ShapeType, data: dict):
+    def __init__(self, position: Types.Vector2D,rotation, shape_type: Types.ShapeType, data: dict):
         self.position = position
+        self.rotation = rotation
         self.shape_type = shape_type
         if data is None:
             self.data = {}
@@ -26,6 +28,15 @@ class Actor:
 
     def get_pos(self):
         return self.position
+    
+    def rotate(self, degrees):
+        self.rotation = (self.rotation + degrees) % 360
+
+    def set_rotation(self, degrees):
+        self.rotation = degrees % 360
+
+    def get_rotation(self):
+        return self.rotation
 
     def change_data(self, key, value):
         self.data[key] = value
@@ -46,51 +57,6 @@ class Actor:
 
         width, height = font._pg_font.size(text)
         return Types.Vector2D(width, height)
-
-        
-
-    """
-    def colliding(self, other: 'Actor'):
-        # --- Rettangolo vs Rettangolo ---
-        if self.shape_type == Types.ShapeType.RECTANGLE and other.shape_type == Types.ShapeType.RECTANGLE:
-            size1 = self.data.get("size", Types.Vector2D(1, 1))
-            size2 = other.data.get("size", Types.Vector2D(1, 1))
-            align1 = self.data.get("align", Types.Align.CORNER)
-            align2 = other.data.get("align", Types.Align.CORNER)
-
-            rect1 = pygame.Rect(
-                self.position.x -
-                (0 if align1 == Types.Align.CORNER else size1.x / 2),
-                self.position.y -
-                (0 if align1 == Types.Align.CORNER else size1.y / 2),
-                size1.x, size1.y
-            )
-            rect2 = pygame.Rect(
-                other.position.x -
-                (0 if align2 == Types.Align.CORNER else size2.x / 2),
-                other.position.y -
-                (0 if align2 == Types.Align.CORNER else size2.y / 2),
-                size2.x, size2.y
-            )
-            return rect1.colliderect(rect2)
-
-        # --- Cerchio vs Cerchio ---
-        elif self.shape_type == Types.ShapeType.ELLIPSE and other.shape_type == Types.ShapeType.ELLIPSE:
-            r1 = self.data.get("size", Types.Vector2D(20, 20)).x / 2
-            r2 = other.data.get("size", Types.Vector2D(20, 20)).x / 2
-            dx = self.position.x - other.position.x
-            dy = self.position.y - other.position.y
-            return dx * dx + dy * dy <= (r1 + r2) ** 2
-
-        # --- Rettangolo vs Cerchio ---
-        elif self.shape_type == Types.ShapeType.RECTANGLE and other.shape_type == Types.ShapeType.ELLIPSE:
-            return self._rect_circle_collision(self, other)
-
-        elif self.shape_type == Types.ShapeType.ELLIPSE and other.shape_type == Types.ShapeType.RECTANGLE:
-            return self._rect_circle_collision(other, self)
-
-        return False
-    """
 
     def colliding(self, other: 'Actor'):
         size1 = self.data.get("size", Types.Vector2D(1, 1))
@@ -139,30 +105,66 @@ class Canvas:
     def __init__(self, screen: pygame.Surface, assetFolder):
         self.screen = screen
         self.assetFolder = assetFolder
+        self.image_cache = {}
+
+    def _rotate_surface(self, surface, angle, pivot):
+        """Ruota una superficie attorno a un punto pivot"""
+        # Calcola la superficie ruotata
+        rotated_surface = pygame.transform.rotate(surface, angle)
+        
+        # Calcola il nuovo rettangolo con il pivot corretto
+        rotated_rect = rotated_surface.get_rect(center=pivot)
+        
+        return rotated_surface, rotated_rect
+
+    def _get_pivot_point(self, actor, size):
+        """Calcola il punto di pivot per la rotazione in base all'allineamento"""
+        align = actor.data.get("align", Types.Align.CORNER)
+        
+        if align == Types.Align.CENTER:
+            return (actor.position.x, actor.position.y)
+        else:  # CORNER
+            return (actor.position.x + size.x / 2, actor.position.y + size.y / 2)
 
     def fill(self, color: Types.Color):
         self.screen.fill(color)
 
     def draw(self, actor: Actor):
+        rotation = actor.rotation
+        
         if actor.shape_type == Types.ShapeType.RECTANGLE:
             size = actor.data.get("size", Types.Vector2D(1, 1))
             align = actor.data.get("align", Types.Align.CORNER)
-            X = actor.position.x - \
-                (0 if align == Types.Align.CORNER else size.x / 2)
-            Y = actor.position.y - \
-                (0 if align == Types.Align.CORNER else size.y / 2)
-            pygame.draw.rect(self.screen, actor.data.get("color", Types.Color(0, 0, 0)),
-                             pygame.Rect(X, Y, size.x, size.y))
+            color = actor.data.get("color", Types.Color(0, 0, 0))
+            
+            if rotation == 0:
+                # Nessuna rotazione - disegna normalmente
+                X = actor.position.x - (0 if align == Types.Align.CORNER else size.x / 2)
+                Y = actor.position.y - (0 if align == Types.Align.CORNER else size.y / 2)
+                pygame.draw.rect(self.screen, color, pygame.Rect(X, Y, size.x, size.y))
+            else:
+                # Con rotazione - crea superficie e ruota
+                surface = pygame.Surface((size.x, size.y), pygame.SRCALPHA)
+                pygame.draw.rect(surface, color, pygame.Rect(0, 0, size.x, size.y))
+                pivot = self._get_pivot_point(actor, size)
+                rotated_surface, rotated_rect = self._rotate_surface(surface, -rotation, pivot)
+                self.screen.blit(rotated_surface, rotated_rect)
 
         elif actor.shape_type == Types.ShapeType.ELLIPSE:
             size = actor.data.get("size", Types.Vector2D(50, 50))
             align = actor.data.get("align", Types.Align.CORNER)
-            X = actor.position.x - \
-                (0 if align == Types.Align.CORNER else size.x / 2)
-            Y = actor.position.y - \
-                (0 if align == Types.Align.CORNER else size.y / 2)
-            pygame.draw.ellipse(self.screen, actor.data.get("color", Types.Color(0, 0, 0)),
-                                pygame.Rect(X, Y, size.x, size.y))
+            color = actor.data.get("color", Types.Color(0, 0, 0))
+            
+            if rotation == 0:
+                X = actor.position.x - (0 if align == Types.Align.CORNER else size.x / 2)
+                Y = actor.position.y - (0 if align == Types.Align.CORNER else size.y / 2)
+                pygame.draw.ellipse(self.screen, color, pygame.Rect(X, Y, size.x, size.y))
+            else:
+                surface = pygame.Surface((size.x, size.y), pygame.SRCALPHA)
+                pygame.draw.ellipse(surface, color, pygame.Rect(0, 0, size.x, size.y))
+                pivot = self._get_pivot_point(actor, size)
+                rotated_surface, rotated_rect = self._rotate_surface(surface, -rotation, pivot)
+                self.screen.blit(rotated_surface, rotated_rect)
 
         elif actor.shape_type == Types.ShapeType.SPRITE:
             size = actor.data.get("size", Types.Vector2D(1, 1))
@@ -170,62 +172,119 @@ class Canvas:
             path = actor.data.get("path")
             alpha = actor.data.get("alpha", True)
             
-            X = actor.position.x - \
-                (0 if align == Types.Align.CORNER else size.x / 2)
-            Y = actor.position.y - \
-                (0 if align == Types.Align.CORNER else size.y / 2)
-            
             if not path:
                 raise KeyError("[ERROR] 'path' is required.")
             
             full_path = os.path.abspath(os.path.join(self.assetFolder, path))
-            if not os.path.isfile(full_path):
-                raise FileNotFoundError(f"[ERROR] File not found: {full_path}")
+            key = (full_path, size, alpha, rotation)  # Includi rotazione nella cache
+            
+            if key not in self.image_cache:    
+                if not os.path.isfile(full_path):
+                    raise FileNotFoundError(f"[ERROR] File not found: {full_path}")
 
-            image = pygame.image.load(full_path)
-            image = image.convert_alpha() if alpha else image.convert()
+                image = pygame.image.load(full_path)
+                image = image.convert_alpha() if alpha else image.convert()
+                image = pygame.transform.scale(image, size)
+                
+                if rotation != 0:
+                    image = pygame.transform.rotate(image, -rotation)
+                
+                self.image_cache[key] = image
             
-            image = pygame.transform.smoothscale(image, size)
+            image = self.image_cache[key]
             
-            self.screen.blit(image, (X,Y))
-            
+            if rotation == 0:
+                X = actor.position.x - (0 if align == Types.Align.CORNER else size.x / 2)
+                Y = actor.position.y - (0 if align == Types.Align.CORNER else size.y / 2)
+                self.screen.blit(image, (X, Y))
+            else:
+                # Per sprite ruotati, usa il centro come punto di riferimento
+                pivot = self._get_pivot_point(actor, size)
+                rect = image.get_rect(center=pivot)
+                self.screen.blit(image, rect)
+
         elif actor.shape_type == Types.ShapeType.LINE:
-            point1 = actor.position.x
-            point2 = actor.position.y
+            point1 = actor.data.get("point1", actor.position)
+            point2 = actor.data.get("point2", Types.Vector2D(actor.position.x + 50, actor.position.y + 50))
             width = actor.data.get("width", 1)
             color = actor.data.get("color", Types.Color(0, 0, 0))
-            pygame.draw.line(self.screen, color, point1, point2, width)
+            
+            if rotation == 0:
+                pygame.draw.line(self.screen, color, point1, point2, width)
+            else:
+                # Per le linee, ruota entrambi i punti attorno al centro della linea
+                center_x = (point1.x + point2.x) / 2
+                center_y = (point1.y + point2.y) / 2
+                center = Types.Vector2D(center_x, center_y)
+                
+                rotated_point1 = self._rotate_point(point1, center, rotation)
+                rotated_point2 = self._rotate_point(point2, center, rotation)
+                
+                pygame.draw.line(self.screen, color, rotated_point1, rotated_point2, width)
 
         elif actor.shape_type == Types.ShapeType.ARC:
-            X = actor.position.x
-            Y = actor.position.y
-            size = actor.data.get("size", Types.Vector2D(1, 1))
+            rect_pos = actor.data.get("rect_position", actor.position)
+            size = actor.data.get("size", Types.Vector2D(100, 100))
             width = actor.data.get("width", 1)
             color = actor.data.get("color", Types.Color(0, 0, 0))
-            start_angle = actor.data.get("start_angle", 3)
-            stop_angle = actor.data.get("stop_angle", 0)
-            pygame.draw.arc(self.screen, color, (X, Y, size.x,
-                            size.y), start_angle, stop_angle, width)
+            start_angle = actor.data.get("start_angle", 0)
+            stop_angle = actor.data.get("stop_angle", math.pi * 2)
+            
+            if rotation == 0:
+                pygame.draw.arc(self.screen, color, (rect_pos.x, rect_pos.y, size.x, size.y), 
+                               start_angle, stop_angle, width)
+            else:
+                # Per archi, crea una superficie e ruota
+                surface = pygame.Surface((size.x, size.y), pygame.SRCALPHA)
+                pygame.draw.arc(surface, color, (0, 0, size.x, size.y), start_angle, stop_angle, width)
+                pivot = (rect_pos.x + size.x / 2, rect_pos.y + size.y / 2)
+                rotated_surface, rotated_rect = self._rotate_surface(surface, -rotation, pivot)
+                self.screen.blit(rotated_surface, rotated_rect)
 
         elif actor.shape_type == Types.ShapeType.TEXT:
-            X = actor.position.x
-            Y = actor.position.y
+            position = actor.position
             text = actor.data.get("text", "")
             font = actor.data.get("font", Types.Font("Comic Sans MS", 20))
             color = actor.data.get("color", Types.Color(0, 0, 0))
             text_align = actor.data.get("text_align", Types.TextAlign.LEFT)
             antialias = actor.data.get("antialias", True)
+            
             text_surface = font._construct().render(text, antialias, color)
+            
+            if rotation != 0:
+                text_surface = pygame.transform.rotate(text_surface, -rotation)
+            
             width, height = text_surface.get_width(), text_surface.get_height()
             
+            # Calcola la posizione in base all'allineamento del testo
             if text_align == Types.TextAlign.CENTER:
-                X -= width / 2
-                Y -= height / 2
+                X = position.x - width / 2
+                Y = position.y - height / 2
             elif text_align == Types.TextAlign.RIGHT:
-                X -= width
+                X = position.x - width
+                Y = position.y
+            else:  # LEFT
+                X = position.x
+                Y = position.y
+            
+            self.screen.blit(text_surface, (X, Y))
 
-            self.screen.blit(text_surface, (X, Y, width, height))
-
+    def _rotate_point(self, point, center, angle_degrees):
+        """Ruota un punto attorno a un centro di un angolo specificato in gradi"""
+        angle_rad = math.radians(angle_degrees)
+        cos_angle = math.cos(angle_rad)
+        sin_angle = math.sin(angle_rad)
+        
+        # Trasla il punto nel sistema di coordinate del centro
+        translated_x = point.x - center.x
+        translated_y = point.y - center.y
+        
+        # Applica la rotazione
+        rotated_x = translated_x * cos_angle - translated_y * sin_angle
+        rotated_y = translated_x * sin_angle + translated_y * cos_angle
+        
+        # Trasla di nuovo nel sistema di coordinate originale
+        return Types.Vector2D(rotated_x + center.x, rotated_y + center.y)
 
 class Window:
     def __init__(self, FPS, assetFolder):
