@@ -20,7 +20,6 @@ class excecuter:
 
         screen = pygame.display.set_mode((800,600))
         clock = pygame.time.Clock()
-        my_font = pygame.font.SysFont('Comic Sans MS', 30)
 
         #Typess
         lua.globals().Color = Types.Color
@@ -41,6 +40,7 @@ class excecuter:
         lua.globals().Debug = Debug
         Window = Objects.Window(60, self.assetFolder)
         lua.globals().Window = Window
+        
         # -- Screen --
         Mouse = Objects.Mouse()
         lua.globals().Mouse = Mouse
@@ -76,17 +76,7 @@ class excecuter:
                         On_KeyDown(e.key)
                 elif e.type == pygame.KEYUP:
                     if On_KeyUp is not None:
-                        On_KeyUp(e.key)         
-            
-            if currentFrame <= Window.get_target_fps():
-                screen.fill((0,0,0))
-                text_surface = my_font.render('Made With Felix Engine', True, (255, 255, 255))
-                w,h = screen.get_size()
-                screen.blit(text_surface, ((w - text_surface.get_width()) / 2,(h - text_surface.get_height()) / 2))
-                pygame.display.flip()
-                clock.tick(Window.get_target_fps())
-                currentFrame += 1
-                continue
+                        On_KeyUp(e.key)
             
             Input._update()
             Mouse._update()

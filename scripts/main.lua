@@ -11,6 +11,7 @@ end
 
 local cube = Actor(
     Vector2D(35, 35),
+    0,
     ShapeType.RECTANGLE,
     {
         color = Color(255, 0, 0),
@@ -21,6 +22,7 @@ local cube = Actor(
 
 local ellipse = Actor(
     Vector2D(110, 35),
+    0,
     ShapeType.ELLIPSE,
     {
         color = Color(0, 0, 255),
@@ -30,11 +32,12 @@ local ellipse = Actor(
 )
 
 local line = Actor(
-    Vector2D(
-        Vector2D(10, 75),
-        Vector2D(135, 75)),
+    Vector2D(0,0),
+    0,
     ShapeType.LINE,
     {
+        point1 = Vector2D(10,75),
+        point2 = Vector2D(135,75),
         color = Color(0, 0, 0),
         width = 5
     }
@@ -42,6 +45,7 @@ local line = Actor(
 
 local arc = Actor(
     Vector2D(10, 35),
+    0,
     ShapeType.ARC,
     {
         size = Vector2D(125, 125),
@@ -56,6 +60,7 @@ local font = Font("Arial",30,true,true)
 
 local text = Actor(
     Vector2D(800, 0),
+    0,
     ShapeType.TEXT,
     {
         font = font,
@@ -67,6 +72,7 @@ local text = Actor(
 
 local image = Actor(
     Vector2D(400, 300),
+    0,
     ShapeType.SPRITE,
     {
         size = Vector2D(100,100),
@@ -78,6 +84,7 @@ local image = Actor(
 
 local currentPlayerTEXT = Actor(
     Vector2D(Window.get_size().x / 2, Window.get_size().y - 20),
+    0,
     ShapeType.TEXT,
     {
         text = "1  2  3",
@@ -90,6 +97,7 @@ local currentPlayerTEXT = Actor(
 
 local currentPlayerSELECTOR = Actor(
     Vector2D(Window.get_size().x / 2 - 32, Window.get_size().y - 20),
+    0,
     ShapeType.RECTANGLE,
     {
         size = Vector2D(18,32),
@@ -160,6 +168,8 @@ function On_Runtime(dt, fps, frame)
     elseif player == image then
         currentPlayerSELECTOR.set_pos(Vector2D(Window.get_size().x / 2 + 32,Window.get_size().y - 20))
     end
+
+    image.rotate(100 * dt)
 
     local tsize = text.get_size()
     Debug.log(tsize.x .. " : " .. tsize.y)

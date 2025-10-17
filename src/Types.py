@@ -1,6 +1,7 @@
 from enum import Enum
 from types import SimpleNamespace
 import pygame
+import math
 
 class ShapeType(Enum):
     RECTANGLE = 1
@@ -147,3 +148,35 @@ class Vector2D:
         elif isinstance(other, (int,float)):
             self.x -= other
             self.y -= other
+            
+    def rotate(self, angle_degrees):
+        """Ruota il vettore di un angolo in gradi"""
+        angle_rad = math.radians(angle_degrees)
+        cos_angle = math.cos(angle_rad)
+        sin_angle = math.sin(angle_rad)
+        
+        new_x = self.x * cos_angle - self.y * sin_angle
+        new_y = self.x * sin_angle + self.y * cos_angle
+        
+        return Vector2D(new_x, new_y)
+    
+    def get_angle(self):
+        """Restituisce l'angolo del vettore in gradi"""
+        return math.degrees(math.atan2(self.y, self.x))
+    
+    def set_angle(self, angle_degrees):
+        """Imposta l'angolo del vettore mantenendo la lunghezza"""
+        length = self.get_length()
+        angle_rad = math.radians(angle_degrees)
+        self.x = length * math.cos(angle_rad)
+        self.y = length * math.sin(angle_rad)
+    
+    def get_length(self):
+        """Restituisce la lunghezza del vettore"""
+        return math.sqrt(self.x * self.x + self.y * self.y)
+    
+    def set_length(self, length):
+        """Imposta la lunghezza del vettore mantenendo l'angolo"""
+        angle = math.atan2(self.y, self.x)
+        self.x = length * math.cos(angle)
+        self.y = length * math.sin(angle)

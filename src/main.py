@@ -16,11 +16,12 @@ parser = argparse.ArgumentParser(description="Felix Engine")
 parser.add_argument("--compile", action="store_true", help="Compila")
 parser.add_argument("-o", "--output", default="output", help="Cartella di destinazione della compilazione")
 parser.add_argument("-s", "--source", default="scripts", help="Cartella di avvio entry point principale")
+parser.add_argument("-e", "--entry", default="main.lua", help="File di avvio entry point principale")
 parser.add_argument("-a", "--assets", default="assets", help="Cartella di assets principale")
 args = parser.parse_args()
 
 SCRIPTS_PATH = args.source
-ENTRY_SCRIPT = os.path.join(SCRIPTS_PATH, "main.lua")
+ENTRY_SCRIPT = os.path.join(SCRIPTS_PATH,args.entry)
 ASSETSFOLDER = args.assets
 
 def compile_with_nuitka(output_dir):
